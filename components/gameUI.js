@@ -26,7 +26,7 @@ const MapWidget = dynamic(() => import("../components/Map"), { ssr: false });
 // import RoundOverScreen from "./roundOverScreen";
 const RoundOverScreen = dynamic(() => import("./roundOverScreen"), { ssr: false });
 
-export default function GameUI({ inCoolMathGames, miniMapShown, setMiniMapShown, singlePlayerRound, setSinglePlayerRound, showDiscordModal, setShowDiscordModal, inCrazyGames, showPanoOnResult, setShowPanoOnResult, countryGuesserCorrect, setCountryGuesserCorrect, otherOptions, onboarding, setOnboarding, countryGuesser, options, timeOffset, ws, multiplayerState, backBtnPressed, setMultiplayerState, countryStreak, setCountryStreak, loading, setLoading, session, gameOptionsModalShown, setGameOptionsModalShown, latLong, loadLocation, gameOptions, setGameOptions, showAnswer, setShowAnswer, pinPoint, setPinPoint, hintShown, setHintShown, showCountryButtons, setShowCountryButtons }) {
+export default function GameUI({ inCoolMathGames, inGameDistribution, miniMapShown, setMiniMapShown, singlePlayerRound, setSinglePlayerRound, showDiscordModal, setShowDiscordModal, inCrazyGames, showPanoOnResult, setShowPanoOnResult, countryGuesserCorrect, setCountryGuesserCorrect, otherOptions, onboarding, setOnboarding, countryGuesser, options, timeOffset, ws, multiplayerState, backBtnPressed, setMultiplayerState, countryStreak, setCountryStreak, loading, setLoading, session, gameOptionsModalShown, setGameOptionsModalShown, latLong, loadLocation, gameOptions, setGameOptions, showAnswer, setShowAnswer, pinPoint, setPinPoint, hintShown, setHintShown, showCountryButtons, setShowCountryButtons }) {
   const { t: text } = useTranslation("common");
   const [showStreakAdBanner, setShowStreakAdBanner] = useState(false);
 
@@ -148,7 +148,7 @@ export default function GameUI({ inCoolMathGames, miniMapShown, setMiniMapShown,
       const loadTime = window.gameOpen;
       const lastDiscordShown = gameStorage.getItem("shownDiscordModal");
       if(lastDiscordShown) return console.log("Discord modal already shown");
-      if(Date.now() - loadTime > 600000 && !process.env.NEXT_PUBLIC_COOLMATH) {
+      if(Date.now() - loadTime > 600000 && !process.env.NEXT_PUBLIC_COOLMATH && !process.env.NEXT_PUBLIC_GAMEDISTRIBUTION) {
         setShowDiscordModal(true)
         sendEvent('discord_modal_shown')
       } else console.log("Not showing discord modal, waiting for "+(600000 - (Date.now() - loadTime))+"ms")
@@ -436,7 +436,7 @@ export default function GameUI({ inCoolMathGames, miniMapShown, setMiniMapShown,
 
           // disable rewarded ads for iOS users due to navigation interference
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-          if(countryStreak > 0 && window.adBreak && !inCrazyGames && !inCoolMathGames && !isIOS) {
+          if(countryStreak > 0 && window.adBreak && !inCrazyGames && !inCoolMathGames && !inGameDistribution && !isIOS) {
           console.log("requesting reward ad")
           window.adBreak({
             type: 'reward',  // rewarded ad
@@ -485,7 +485,7 @@ export default function GameUI({ inCoolMathGames, miniMapShown, setMiniMapShown,
   return (
     <div className="gameUI">
 
-{ !onboarding && !inCrazyGames && !inCoolMathGames && (!session?.token?.supporter) && !singlePlayerRound?.done && !onboarding?.completed && (
+{ !onboarding && !inCrazyGames && !inCoolMathGames && !inGameDistribution && (!session?.token?.supporter) && !singlePlayerRound?.done && !onboarding?.completed && (
     <div className={`topAdFixed ${(multiplayerTimerShown || onboardingTimerShown || singlePlayerRound)?'moreDown':''}`}>
       <Ad
       unit={"worldguessr_gameui_ad"}
