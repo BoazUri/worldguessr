@@ -25,11 +25,11 @@ export default async function handler(req, res) {
     }
 
     const now = new Date();
-    const targetYear = year || now.getFullYear();
-    const targetMonth = month || (now.getMonth() + 1);
+    const targetYear = year || now.getUTCFullYear();
+    const targetMonth = month || (now.getUTCMonth() + 1);
 
-    const startOfMonth = new Date(targetYear, targetMonth - 1, 1);
-    const endOfMonth = new Date(targetYear, targetMonth, 1);
+    const startOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, 1));
+    const endOfMonth = new Date(Date.UTC(targetYear, targetMonth, 1));
 
     // Aggregate actions by moderator and action type for the month
     const moderatorActivity = await ModerationLog.aggregate([
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
         { $match: { createdAt: { $gte: startOfMonth, $lt: endOfMonth } } },
         {
           $group: {
-            _id: { $dayOfMonth: '$createdAt' },
+            _id: { $dayOfMonth: { date: '$createdAt', timezone: 'UTC' } },
             count: { $sum: 1 }
           }
         },
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
         { $match: { reviewedAt: { $gte: startOfMonth, $lt: endOfMonth }, status: { $ne: 'pending' } } },
         {
           $group: {
-            _id: { $dayOfMonth: '$reviewedAt' },
+            _id: { $dayOfMonth: { date: '$reviewedAt', timezone: 'UTC' } },
             count: { $sum: 1 }
           }
         },
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
       {
         $group: {
           _id: {
-            day: { $dayOfMonth: '$createdAt' },
+            day: { $dayOfMonth: { date: '$createdAt', timezone: 'UTC' } },
             moderatorId: '$moderator.accountId'
           },
           count: { $sum: 1 }
@@ -146,7 +146,7 @@ export default async function handler(req, res) {
     }
 
     // Build daily data array for the month
-    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+    const daysInMonth = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
     const dailyReports = [];
     const incomingMap = Object.fromEntries(dailyIncoming.map(d => [d._id, d.count]));
     const handledMap = Object.fromEntries(dailyHandled.map(d => [d._id, d.count]));
@@ -173,8 +173,8 @@ export default async function handler(req, res) {
       {
         $group: {
           _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
+            year: { $year: { date: '$createdAt', timezone: 'UTC' } },
+            month: { $month: { date: '$createdAt', timezone: 'UTC' } }
           }
         }
       },
